@@ -3,6 +3,9 @@ package blackjack;
 import com.google.common.collect.Lists;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicBorders;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,15 +39,16 @@ public class PlayRoom extends JFrame {
     private Boolean isPause = true;
     private Boolean canBuyInsurance = false;
     private List<JLabel> playerLabels;
+    public static PlayRoom playRoom;
 
     public static void main(String[] args) {
         System.out.println("Welcome to BlackJack Game!");
-        PlayRoom frame = new PlayRoom();
-        frame.setContentPane(frame.main);
-        frame.setBounds(200, 100, 1400, 850);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-        frame.playGame();
+        playRoom = new PlayRoom();
+        playRoom.setContentPane(playRoom.main);
+        playRoom.setBounds(200, 100, 1400, 850);
+        playRoom.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        playRoom.setVisible(true);
+        playRoom.playGame();
     }
 
 
@@ -52,12 +56,12 @@ public class PlayRoom extends JFrame {
         hitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                doubleButton.setEnabled(false);
+                spiltButton.setEnabled(false);
                 currentHand.drawCard();
                 if (!validateCurrentHand()) {
                     updateCurrentHand();
                 }
-                doubleButton.setEnabled(false);
-                spiltButton.setEnabled(false);
             }
         });
         standButton.addActionListener(new ActionListener() {
@@ -72,6 +76,7 @@ public class PlayRoom extends JFrame {
                 if (currentHand.getOwner() instanceof Player) {
                     ((Player) currentHand.getOwner()).doubleOperation();
                     currentHand.drawCard();
+                    validateCurrentHand();
                     updateCurrentHand();
                 }
             }
@@ -83,6 +88,8 @@ public class PlayRoom extends JFrame {
                 updateCurrentHand();
             }
         });
+        continueGame.setFont(new Font("微软雅黑", Font.PLAIN, 16));
+        continueGame.setSize(60, 40);
         continueGame.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -126,7 +133,7 @@ public class PlayRoom extends JFrame {
                             if (name == null) {
                                 throw new RuntimeException();
                             }
-                            Player player = new Player(name, 10000, blackJackGame);
+                            Player player = new Player(i + 1, name, 10000, blackJackGame);
                             if (!blackJackGame.addPlayer(player)) {
                                 JOptionPane.showMessageDialog(null, "最多只能五名玩家！");
                             }
@@ -220,11 +227,13 @@ public class PlayRoom extends JFrame {
      */
     public void refresh() {
         int index = 0;
+        Font font = new Font("微软雅黑", Font.PLAIN, 18);
         for (Player player : blackJackGame.getPlayers()) {
             JLabel jLabel = playerLabels.get(index);
-            jLabel.setText("Player: " + player.getName() + " Money: " + player.getMoney());
+            jLabel.setFont(font);
+            jLabel.setText(" 玩家: " + player.getName() + "  筹码: " + player.getMoney());
             if (currentHand != null && player.equals(currentHand.getOwner())) {//标识当前操作的用户
-                jLabel.setBorder(BorderFactory.createLineBorder(Color.yellow));
+                jLabel.setBorder(BorderFactory.createLineBorder(Color.red));
             } else {
                 jLabel.setBorder(BorderFactory.createLineBorder(Color.white));
             }
@@ -236,7 +245,7 @@ public class PlayRoom extends JFrame {
         }
         //textField.setText(String.valueOf(currentHand.calculateTotalValue()));
         try {
-            Thread.sleep(100);
+            Thread.sleep(50);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -265,6 +274,7 @@ public class PlayRoom extends JFrame {
 
     /**
      * 检查当前手牌是否是例牌，并对例牌做出直接赔付
+     *
      * @return 是否是例牌
      */
     public boolean validateCurrentHand() {
@@ -285,8 +295,17 @@ public class PlayRoom extends JFrame {
             } else {
                 return true;
             }
+        } else {
+            if (currentHand.isBust()) {
+                JOptionPane.showMessageDialog(null, "庄家爆牌了!");
+                return false;
+            } else if (currentHand.isBlackJack()) {
+                JOptionPane.showMessageDialog(null, "庄家已经BlackJack了!");
+                return false;
+            } else {
+                return true;
+            }
         }
-        return false;
     }
 
     public void disableAllButton() {
@@ -297,6 +316,14 @@ public class PlayRoom extends JFrame {
         buyInsuranceButton.setEnabled(false);
     }
 
+    public void setDealingHand(Hand dealingHand) {
+        int totalTimes = 24;//(int) (totalTime * 10);
+        ((HandPanel) display).setDealingHand(dealingHand, totalTimes);
+        for (int i = 0; i < totalTimes; i++) {
+            refresh();
+        }
+    }
+
     /**
      * 内部画图的Panel类，负责画出牌和桌面
      */
@@ -304,28 +331,48 @@ public class PlayRoom extends JFrame {
         private static final double cardRatio = 2.0 / 3.0;//牌的缩放比例
         private static final int tableStartY = 110;//桌面的起始位置
         private static final int r = 400;//桌面半径
+        private static final int pileX = 700;
+        private static final int pileY = 40;
         private Hand dealerHand;//庄家的牌（只可能有一个）
         private List<Player> players;//玩家的list
 
+        private Hand dealingHand;
+        private int currentTime;
+        private int totalTime;
+
         /**
          * 构造函数，初始化dealerHand和players
+         *
          * @param blackJackGame 游戏类
          */
         public HandPanel(BlackJackGame blackJackGame) {
             this.dealerHand = blackJackGame.getDealer().getHand();
             this.players = blackJackGame.getPlayers();
+            this.dealingHand = null;
+            this.totalTime = 0;
+            this.currentTime = 0;
+        }
+
+        public void setDealingHand(Hand dealingHand, int totalTime) {
+            this.totalTime = totalTime;
+            this.dealingHand = dealingHand;
+            this.currentTime = 0;
         }
 
         /**
          * repaint会调用这个函数
+         *
          * @param g 绘图的Graphics对象
          */
         public void paint(Graphics g) {
             //调用的super.paint(g),让父类做一些事前的工作，如刷新屏幕
             super.paint(g);
             //背景绘制
-            ImageIcon background = new ImageIcon("table1.JPG");
-            g.drawImage(background.getImage(), 0, 0, background.getIconWidth(), background.getIconHeight(), background.getImageObserver());
+            ImageIcon background = new ImageIcon("mytable.jpg");
+            g.drawImage(background.getImage(), 0, 20, background.getIconWidth(), background.getIconHeight(), background.getImageObserver());
+
+            ImageIcon pile = new ImageIcon("pukeImage/back.jpg");
+            g.drawImage(pile.getImage(), pileX, tableStartY + pileY, (int) (pile.getIconWidth() * cardRatio), (int) (pile.getIconHeight() * cardRatio), pile.getImageObserver());
 
             //统计Hand数
             int total = 0;
@@ -356,9 +403,18 @@ public class PlayRoom extends JFrame {
                     }
                     //用黄色的框标识当前操作的牌
                     if (hand.equals(currentHand)) {
-                        ImageIcon imageIcon = new ImageIcon("pukeImage/" + "back" + ".jpg");
+                        ImageIcon imageIcon = new ImageIcon("pukeImage/back.jpg");
                         g.setColor(Color.YELLOW);
-                        g.drawRect((int) x, tableStartY + (int) y, (int) (cardList.size() * 20 * cardRatio + imageIcon.getIconWidth() * cardRatio), (int) (imageIcon.getIconHeight() * cardRatio));
+                        g.drawRect((int) x, tableStartY + (int) y, (int) ((cardList.size() - 1) * 20 * cardRatio + imageIcon.getIconWidth() * cardRatio), (int) (imageIcon.getIconHeight() * cardRatio));
+                    }
+                    if (dealingHand != null && hand.equals(dealingHand)) {
+                        g.drawImage(pile.getImage(), (int) ((x - pileX) / totalTime * currentTime) + pileX, (int) ((y - pileY) / totalTime * currentTime) + pileY + tableStartY, (int) (pile.getIconWidth() * cardRatio), (int) (pile.getIconHeight() * cardRatio), pile.getImageObserver());
+                        currentTime++;
+                        if (currentTime == totalTime) {
+                            dealingHand = null;
+                            totalTime = 0;
+                            currentTime = 0;
+                        }
                     }
                 }
             }
@@ -370,10 +426,20 @@ public class PlayRoom extends JFrame {
                 printCard(card, 500 + i * 20 * cardRatio, tableStartY, g);
                 //g.drawImage(imageIcon.getImage(), 500 + i * 20, 200, imageIcon.getIconWidth(), imageIcon.getIconHeight(), imageIcon.getImageObserver());
             }
+            if (dealingHand != null && dealerHand.equals(dealingHand)) {
+                g.drawImage(pile.getImage(), (int) ((500 - pileX) / totalTime * currentTime) + pileX, (int) ((pileY - tableStartY) / totalTime * currentTime) + pileY + tableStartY, (int) (pile.getIconWidth() * cardRatio), (int) (pile.getIconHeight() * cardRatio), pile.getImageObserver());
+                currentTime++;
+                if (currentTime == totalTime) {
+                    dealingHand = null;
+                    totalTime = 0;
+                    currentTime = 0;
+                }
+            }
         }
 
         /**
          * 画出单张牌的函数
+         *
          * @param card
          * @param x
          * @param y

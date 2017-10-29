@@ -10,12 +10,13 @@ public class Dealer extends Person {
     protected String name;
 
     public Dealer(BlackJackGame blackJackGame) {
-        super(blackJackGame);
+        super(0, blackJackGame);
         hand = new Hand(this);
     }
 
     /**
      * 庄家抽牌，小于17直接抽，要是含有A使得最小小于17，大的大于17，庄家庄家决定是否抽牌
+     *
      * @param pile
      * @return
      */
@@ -23,9 +24,9 @@ public class Dealer extends Person {
         while (true) {
             if (hand.isBust()) {
                 return hand.getMinValue();
-            } else if(hand.isBlackJack()){
+            } else if (hand.isBlackJack()) {
                 return 21;
-            }else if (hand.getMinValue() < 17 && hand.getMaxValue() > 16) {
+            } else if (hand.getMinValue() < 17 && hand.getMaxValue() > 16) {
                 throw new RuntimeException();
             } else if (hand.getMinValue() < 17) {
                 drawSeenCard(pile);
@@ -48,6 +49,7 @@ public class Dealer extends Person {
 
     /**
      * 抽明牌
+     *
      * @param pile
      * @return
      */
@@ -60,6 +62,7 @@ public class Dealer extends Person {
 
     /**
      * 抽暗牌
+     *
      * @param pile
      * @return
      */

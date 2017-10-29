@@ -17,8 +17,8 @@ public class Player extends Person {
     private Integer bet;
     private boolean hasBuyInsurance = false;
 
-    public Player(String name, Integer money, BlackJackGame blackJackGame) {
-        super(blackJackGame);
+    public Player(int id, String name, Integer money, BlackJackGame blackJackGame) {
+        super(id, blackJackGame);
         this.blackJackGame = blackJackGame;
         this.name = name;
         this.money = money;
@@ -34,6 +34,7 @@ public class Player extends Person {
 
     /**
      * 是否可以购买保险
+     *
      * @return
      */
     public boolean buyInsurance() {
@@ -99,5 +100,29 @@ public class Player extends Person {
         Card card = pile.getTopCard();
         card.flop();
         return card;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Player)) return false;
+        if (!super.equals(o)) return false;
+
+        Player player = (Player) o;
+
+        if (hasBuyInsurance != player.hasBuyInsurance) return false;
+        if (name != null ? !name.equals(player.name) : player.name != null) return false;
+        if (money != null ? !money.equals(player.money) : player.money != null) return false;
+        return bet != null ? bet.equals(player.bet) : player.bet == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (money != null ? money.hashCode() : 0);
+        result = 31 * result + (bet != null ? bet.hashCode() : 0);
+        result = 31 * result + (hasBuyInsurance ? 1 : 0);
+        return result;
     }
 }

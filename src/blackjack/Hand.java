@@ -22,6 +22,7 @@ public class Hand {
 
     /**
      * 计算出所有牌可能的值
+     *
      * @return
      */
     public List<Integer> calculateTotalValue() {
@@ -49,14 +50,17 @@ public class Hand {
 
     /**
      * 添加一张手牌
+     *
      * @param card
      */
     public void addCard(Card card) {
+        PlayRoom.playRoom.setDealingHand(this);
         cards.add(card);
     }
 
     /**
      * 弃牌
+     *
      * @return
      */
     public List<Card> returnAllCards() {
@@ -69,6 +73,7 @@ public class Hand {
 
     /**
      * 是否能够分派
+     *
      * @return
      */
     public boolean canSpilt() {
@@ -77,6 +82,7 @@ public class Hand {
 
     /**
      * 是否满手牌
+     *
      * @return
      */
     public boolean isFull() {
@@ -85,6 +91,7 @@ public class Hand {
 
     /**
      * 是否爆牌
+     *
      * @return
      */
     public boolean isBust() {
@@ -99,6 +106,7 @@ public class Hand {
 
     /**
      * 是否是五小龙
+     *
      * @return
      */
     public boolean isFiveDragon() {
@@ -107,6 +115,7 @@ public class Hand {
 
     /**
      * 是否是BlackJack
+     *
      * @return
      */
     public boolean isBlackJack() {
@@ -116,6 +125,7 @@ public class Hand {
 
     /**
      * 获得最小的可能值
+     *
      * @return
      */
     public int getMinValue() {
@@ -125,6 +135,7 @@ public class Hand {
 
     /**
      * 获得最大值
+     *
      * @return
      */
     public int getMaxValue() {
@@ -134,6 +145,7 @@ public class Hand {
 
     /**
      * 计算小于等于21的最大值
+     *
      * @return
      */
     public int getAvailableMaxValue() {
@@ -143,11 +155,32 @@ public class Hand {
 
     /**
      * 结算和庄家的差距
+     *
      * @param dealerValue
      * @return
      */
     public int balance(int dealerValue) {
         result = getAvailableMaxValue() - dealerValue;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Hand)) return false;
+        if (!super.equals(o)) return false;
+
+        Hand hand = (Hand) o;
+
+        if (owner != null ? !owner.equals(hand.owner) : hand.owner != null) return false;
+        return cards != null ? cards.equals(hand.cards) : hand.cards == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (owner != null ? owner.hashCode() : 0);
+        result = 31 * result + (cards != null ? cards.hashCode() : 0);
         return result;
     }
 }

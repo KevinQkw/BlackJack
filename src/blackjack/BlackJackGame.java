@@ -46,6 +46,8 @@ public class BlackJackGame {
         pile.shuffle();//弃牌
         for (Player player : players) {//初始化玩家
             player.init();
+        }
+        for (Player player : players) {//初始化玩家
             for (Hand hand : player.getHands()) {//玩家抽2张明牌
                 for (int i = 0; i < 2; i++) {
                     Card card = player.drawSeenCard(pile);
