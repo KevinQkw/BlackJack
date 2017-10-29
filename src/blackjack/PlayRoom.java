@@ -1,7 +1,6 @@
 package blackjack;
 
 import com.google.common.collect.Lists;
-import javafx.util.Pair;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,8 +8,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
-import static java.lang.Math.toRadians;
-
+/**
+ * main类和绘制UI
+ */
 public class PlayRoom extends JFrame {
     private JTextField textField1;
     JPanel main;
@@ -100,6 +100,7 @@ public class PlayRoom extends JFrame {
     }
 
     private void createUIComponents() {
+        //牌堆由几副牌构成
         /*while (true) {
             try {
                 String deckNum = JOptionPane.showInputDialog("几副牌作为牌堆？");
@@ -140,11 +141,13 @@ public class PlayRoom extends JFrame {
             }
         }
 
+        //多态
         display = new HandPanel(blackJackGame);
-
-        //main.add(label, new Integer(Integer.MIN_VALUE));
     }
 
+    /**
+     * 启动游戏
+     */
     public void playGame() {
         boolean isContinue = true;
         while (isContinue) {
@@ -154,7 +157,7 @@ public class PlayRoom extends JFrame {
                 }
             }
             List<Player> players = blackJackGame.getPlayers();
-            for (Player player : players) {
+            for (Player player : players) {//轮流下注
                 /*while (true) {
                     try {
                         refresh();
@@ -173,6 +176,7 @@ public class PlayRoom extends JFrame {
                 }*/
                 player.addBet(200);
             }
+            //开始一轮游戏
             canBuyInsurance = blackJackGame.startTurn();
             refresh();
             updateCurrentHand();
@@ -180,9 +184,10 @@ public class PlayRoom extends JFrame {
                 refresh();
             }
             try {
-                blackJackGame.dealerTurn();
+                blackJackGame.dealerTurn();//庄家结算（自动）
             } catch (RuntimeException re) {
                 //表示需要庄家决定是否抽牌
+                JOptionPane.showMessageDialog(null, "请庄家操作！");
                 hitButton.setEnabled(true);
                 standButton.setEnabled(true);
                 synchronized (currentHand) {
@@ -192,30 +197,33 @@ public class PlayRoom extends JFrame {
                 }
             }
             refresh();
-            blackJackGame.balance();
+            blackJackGame.balance();//结算钱
             refresh();
-            blackJackGame.endTurn();
+            blackJackGame.endTurn();//结束一轮弃牌
             switch (JOptionPane.showConfirmDialog(null, "本局已结束，是否开始下一局？")) {
                 case JOptionPane.YES_OPTION:
-                    isPause = false;
+                    isPause = false;//直接继续
                     break;
                 case JOptionPane.NO_OPTION:
-                    isPause = true;
+                    isPause = true;//暂停
                     break;
                 default:
-                    isContinue = false;
+                    isContinue = false;//退出
                     break;
             }
         }
         System.exit(0);
     }
 
+    /**
+     * 刷新ui的函数
+     */
     public void refresh() {
         int index = 0;
         for (Player player : blackJackGame.getPlayers()) {
             JLabel jLabel = playerLabels.get(index);
             jLabel.setText("Player: " + player.getName() + " Money: " + player.getMoney());
-            if (currentHand != null && player.equals(currentHand.getOwner())) {
+            if (currentHand != null && player.equals(currentHand.getOwner())) {//标识当前操作的用户
                 jLabel.setBorder(BorderFactory.createLineBorder(Color.yellow));
             } else {
                 jLabel.setBorder(BorderFactory.createLineBorder(Color.white));
@@ -234,6 +242,9 @@ public class PlayRoom extends JFrame {
         }
     }
 
+    /**
+     * 换到下一组操作手牌
+     */
     public void updateCurrentHand() {
         disableAllButton();
         currentHand = blackJackGame.continueGame();
@@ -245,19 +256,23 @@ public class PlayRoom extends JFrame {
                 spiltButton.setEnabled(true);
             }
             refresh();
-            buyInsuranceButton.setEnabled(canBuyInsurance && !((Player) currentHand.getOwner()).isHasBuyInsurance());
-            if (!validateCurrentHand()) {
+            buyInsuranceButton.setEnabled(canBuyInsurance && !((Player) currentHand.getOwner()).isHasBuyInsurance());//是否可以买保险
+            if (!validateCurrentHand()) {//例牌直接再次切换
                 updateCurrentHand();
             }
         }
     }
 
+    /**
+     * 检查当前手牌是否是例牌，并对例牌做出直接赔付
+     * @return 是否是例牌
+     */
     public boolean validateCurrentHand() {
         if (currentHand.getOwner() instanceof Player) {
             Player player = (Player) currentHand.getOwner();
             if (currentHand.isBust()) {
                 JOptionPane.showMessageDialog(null, "你爆牌了!");
-                player.setBet(0);
+                player.setBet(0);//玩家爆牌直接输
                 return false;
             } else if (currentHand.isBlackJack()) {
                 JOptionPane.showMessageDialog(null, "你已经BlackJack了!");
@@ -265,7 +280,7 @@ public class PlayRoom extends JFrame {
             } else if (currentHand.isFiveDragon()) {
                 JOptionPane.showMessageDialog(null, "你已经是五小龙了!");
                 player.getWinnerMoney(2.0);
-                player.setBet(0);
+                player.setBet(0);//玩家五小龙直接胜利获得2倍赔付
                 return false;
             } else {
                 return true;
@@ -282,45 +297,64 @@ public class PlayRoom extends JFrame {
         buyInsuranceButton.setEnabled(false);
     }
 
+    /**
+     * 内部画图的Panel类，负责画出牌和桌面
+     */
     class HandPanel extends JPanel {
-        private static final double cardRatio = 2.0 / 3.0;
-        private static final int tableStartY = 110;
-        private static final int r = 400;
-        private Hand hand;
-        private List<Player> players;
+        private static final double cardRatio = 2.0 / 3.0;//牌的缩放比例
+        private static final int tableStartY = 110;//桌面的起始位置
+        private static final int r = 400;//桌面半径
+        private Hand dealerHand;//庄家的牌（只可能有一个）
+        private List<Player> players;//玩家的list
 
+        /**
+         * 构造函数，初始化dealerHand和players
+         * @param blackJackGame 游戏类
+         */
         public HandPanel(BlackJackGame blackJackGame) {
-            this.hand = blackJackGame.getDealer().getHand();
+            this.dealerHand = blackJackGame.getDealer().getHand();
             this.players = blackJackGame.getPlayers();
         }
 
+        /**
+         * repaint会调用这个函数
+         * @param g 绘图的Graphics对象
+         */
         public void paint(Graphics g) {
             //调用的super.paint(g),让父类做一些事前的工作，如刷新屏幕
             super.paint(g);
+            //背景绘制
             ImageIcon background = new ImageIcon("table1.JPG");
             g.drawImage(background.getImage(), 0, 0, background.getIconWidth(), background.getIconHeight(), background.getImageObserver());
 
+            //统计Hand数
             int total = 0;
             for (Player player : players) {
                 for (Hand hand : player.getHands()) {
                     total++;
                 }
             }
+
+            //计算每个Hand占多少角度
             double angle = 180.0 / total;
+
             int index = 0;
             for (Player player : players) {
                 for (Hand hand : player.getHands()) {
-                    double angles = angle * (2 * index + 1) / 2.0;
-                    double rad = Math.toRadians(angles);
+                    double angles = angle * (2 * index + 1) / 2.0;//计算绘制的集体角度
+                    double rad = Math.toRadians(angles);//转换角度和弧度
                     index++;
                     List<Card> cardList = hand.getCards();
+                    //通过sin和cos函数计算出画图位置
                     double x = 600 - r * Math.cos(rad) - 50;
                     double y = Math.sin(rad) * r;
+                    //画出Hand中的Card
                     for (int i = 0; i < cardList.size(); i++) {
                         Card card = cardList.get(i);
                         printCard(card, i * 20 * cardRatio + x, tableStartY + y, g);
                         //g.drawImage(imageIcon.getImage(), 0 + i * 20, 600, imageIcon.getIconWidth(), imageIcon.getIconHeight(), imageIcon.getImageObserver());
                     }
+                    //用黄色的框标识当前操作的牌
                     if (hand.equals(currentHand)) {
                         ImageIcon imageIcon = new ImageIcon("pukeImage/" + "back" + ".jpg");
                         g.setColor(Color.YELLOW);
@@ -329,7 +363,8 @@ public class PlayRoom extends JFrame {
                 }
             }
 
-            List<Card> cardList = hand.getCards();
+            //画出庄家的Hand
+            List<Card> cardList = dealerHand.getCards();
             for (int i = 0; i < cardList.size(); i++) {
                 Card card = cardList.get(i);
                 printCard(card, 500 + i * 20 * cardRatio, tableStartY, g);
@@ -337,70 +372,19 @@ public class PlayRoom extends JFrame {
             }
         }
 
+        /**
+         * 画出单张牌的函数
+         * @param card
+         * @param x
+         * @param y
+         * @param g
+         */
         private void printCard(Card card, double x, double y, Graphics g) {
-            CardColor cardColor = card.getCardColor();
-            String fileName = card.isSeen() ? String.valueOf((cardColor.ordinal() * 13) + card.getFaceValue()) : "back";
+            Suit suit = card.getSuit();
+            String fileName = card.isSeen() ? String.valueOf((suit.ordinal() * 13) + card.getFaceValue()) : "back";
             ImageIcon imageIcon = new ImageIcon("pukeImage/" + fileName + ".jpg");
             g.drawImage(imageIcon.getImage(), (int) x, (int) y, (int) (imageIcon.getIconWidth() * cardRatio), (int) (imageIcon.getIconHeight() * cardRatio), imageIcon.getImageObserver());
         }
     }
 }
-
-/*class HandPanel extends JPanel {
-    private static final double cardRatio = 2.0 / 3.0;
-    private static final int tableStartY = 110;
-    private static final int r = 400;
-    private Hand hand;
-    private List<Player> players;
-
-    public HandPanel(BlackJackGame blackJackGame) {
-        this.hand = blackJackGame.getDealer().getHand();
-        this.players = blackJackGame.getPlayers();
-    }
-
-    public void paint(Graphics g) {
-        //调用的super.paint(g),让父类做一些事前的工作，如刷新屏幕
-        super.paint(g);
-        ImageIcon background = new ImageIcon("table1.JPG");
-        g.drawImage(background.getImage(), 0, 0, background.getIconWidth(), background.getIconHeight(), background.getImageObserver());
-
-        int total = 0;
-        for (Player player : players) {
-            for (Hand hand : player.getHands()) {
-                total++;
-            }
-        }
-        double angle = 180.0 / total;
-        int index = 0;
-        for (Player player : players) {
-            for (Hand hand : player.getHands()) {
-                double angles = angle * (2 * index + 1) / 2.0;
-                double rad = Math.toRadians(angles);
-                index++;
-                List<Card> cardList = hand.getCards();
-                double x = 600 - r * Math.cos(rad) - 50;
-                double y = Math.sin(rad) * r;
-                for (int i = 0; i < cardList.size(); i++) {
-                    Card card = cardList.get(i);
-                    printCard(card, i * 20 * cardRatio + x, tableStartY + y, g);
-                    //g.drawImage(imageIcon.getImage(), 0 + i * 20, 600, imageIcon.getIconWidth(), imageIcon.getIconHeight(), imageIcon.getImageObserver());
-                }
-            }
-        }
-
-        List<Card> cardList = hand.getCards();
-        for (int i = 0; i < cardList.size(); i++) {
-            Card card = cardList.get(i);
-            printCard(card, 500 + i * 20 * cardRatio, tableStartY, g);
-            //g.drawImage(imageIcon.getImage(), 500 + i * 20, 200, imageIcon.getIconWidth(), imageIcon.getIconHeight(), imageIcon.getImageObserver());
-        }
-    }
-
-    private void printCard(Card card, double x, double y, Graphics g) {
-        CardColor cardColor = card.getCardColor();
-        String fileName = card.isSeen() ? String.valueOf((cardColor.ordinal() * 13) + card.getFaceValue()) : "back";
-        ImageIcon imageIcon = new ImageIcon("pukeImage/" + fileName + ".jpg");
-        g.drawImage(imageIcon.getImage(), (int) x, (int) y, (int) (imageIcon.getIconWidth() * cardRatio), (int) (imageIcon.getIconHeight() * cardRatio), imageIcon.getImageObserver());
-    }
-}*/
 

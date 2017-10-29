@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Stack;
 
+/**
+ * 牌堆
+ */
 public class Pile {
     private Stack<Card> cards;
     private List<Deck> decks;
@@ -38,26 +41,33 @@ public class Pile {
         System.out.println("初始化牌堆完成");
     }
 
+    /**
+     * 取得牌堆顶部的第一张牌
+     * @return
+     */
     public Card getTopCard() {
         return cards.pop();
     }
 
-    public void returnCard(Card card) {
-        cards.add(card);
-    }
-
+    /**
+     * 返回给牌堆牌
+     * @param cards
+     */
     public void returnCards(List<Card> cards) {
         this.cards.addAll(cards);
     }
 
-    public boolean isOutOfCards() {
-        return cards.empty();
-    }
-
+    /**
+     * 是否需要返还弃牌（小于一半）
+     * @return
+     */
     public boolean needReturnCards() {
         return cards.size() < decks.size() * 52 / 2;
     }
 
+    /**
+     * 洗牌
+     */
     public void shuffle() {
         List<Card> cardList = Lists.newArrayList(cards);
         cards = new Stack<>();

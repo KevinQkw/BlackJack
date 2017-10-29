@@ -1,6 +1,9 @@
 package blackjack;
 
-public enum CardColor {
+/**
+ * 花色
+ */
+public enum Suit {
     SPADE, HEART, CLUBS, DIAMOND
 
 }

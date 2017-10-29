@@ -11,9 +11,9 @@ public class Deck {
 
     public Deck() {
         cards = Sets.newHashSet();
-        for (CardColor cardColor : CardColor.values()) {
+        for (Suit suit : Suit.values()) {
             for (int i = 1; i <= 13; i++) {
-                Card card = new Card(cardColor, i);
+                Card card = new Card(suit, i);
                 cards.add(card);
             }
         }

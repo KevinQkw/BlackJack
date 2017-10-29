@@ -1,23 +1,29 @@
 package blackjack;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.google.common.collect.Lists;
 import lombok.Data;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 一手牌
+ */
 @Data
 public class Hand {
-    private Person owner;
-    private List<Card> cards;
+    private Person owner;//手牌的主人
+    private List<Card> cards;//手牌中的牌
     private int result;
 
     public Hand(Person owner) {
         this.owner = owner;
-        cards = Lists.newArrayList();
+        this.cards = Lists.newArrayList();
     }
 
+    /**
+     * 计算出所有牌可能的值
+     * @return
+     */
     public List<Integer> calculateTotalValue() {
         List<Integer> valueList = Lists.newArrayList(0);
         for (Card card : cards) {
@@ -33,15 +39,26 @@ public class Hand {
         return valueList;
     }
 
+    /**
+     * 抽牌一张
+     */
     public void drawCard() {
         Pile pile = owner.getBlackJackGame().getPile();
         addCard(pile.getTopCard().flop());
     }
 
+    /**
+     * 添加一张手牌
+     * @param card
+     */
     public void addCard(Card card) {
         cards.add(card);
     }
 
+    /**
+     * 弃牌
+     * @return
+     */
     public List<Card> returnAllCards() {
         List<Card> cardList = Lists.newArrayList(cards).stream().map(card ->
                 card.isSeen() ? card.flop() : card
@@ -50,14 +67,26 @@ public class Hand {
         return cardList;
     }
 
+    /**
+     * 是否能够分派
+     * @return
+     */
     public boolean canSpilt() {
         return cards.size() == 2 && cards.get(0).getFaceValue().equals(cards.get(1).getFaceValue());
     }
 
+    /**
+     * 是否满手牌
+     * @return
+     */
     public boolean isFull() {
         return cards.size() >= 5;
     }
 
+    /**
+     * 是否爆牌
+     * @return
+     */
     public boolean isBust() {
         List<Integer> valueList = calculateTotalValue();
         for (Integer integer : valueList) {
@@ -68,30 +97,55 @@ public class Hand {
         return true;
     }
 
+    /**
+     * 是否是五小龙
+     * @return
+     */
     public boolean isFiveDragon() {
         return isFull() && getMinValue() <= 21;
     }
 
+    /**
+     * 是否是BlackJack
+     * @return
+     */
     public boolean isBlackJack() {
         List<Integer> valueList = calculateTotalValue();
         return cards.size() == 2 && valueList.contains(21);
     }
 
+    /**
+     * 获得最小的可能值
+     * @return
+     */
     public int getMinValue() {
         List<Integer> valueList = calculateTotalValue();
         return valueList.stream().mapToInt(i -> i).min().orElse(0);
     }
 
+    /**
+     * 获得最大值
+     * @return
+     */
     public int getMaxValue() {
         List<Integer> valueList = calculateTotalValue();
         return valueList.stream().mapToInt(i -> i).max().orElse(30);
     }
 
+    /**
+     * 计算小于等于21的最大值
+     * @return
+     */
     public int getAvailableMaxValue() {
         List<Integer> valueList = calculateTotalValue();
-        return valueList.stream().mapToInt(i -> i).filter(integer -> integer <= 21).max().orElse(21);
+        return valueList.stream().mapToInt(i -> i).filter(integer -> integer <= 21).max().orElse(22);
     }
 
+    /**
+     * 结算和庄家的差距
+     * @param dealerValue
+     * @return
+     */
     public int balance(int dealerValue) {
         result = getAvailableMaxValue() - dealerValue;
         return result;

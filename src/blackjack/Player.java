@@ -6,6 +6,9 @@ import lombok.Data;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * 玩家类
+ */
 @Data
 public class Player extends Person {
     private String name;
@@ -29,6 +32,10 @@ public class Player extends Person {
         System.out.println("Player " + name + " 开始新的一轮");
     }
 
+    /**
+     * 是否可以购买保险
+     * @return
+     */
     public boolean buyInsurance() {
         if (bet / 2 > money) {
             return false;

@@ -4,6 +4,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
+/**
+ * 恶搞的充值类（恶搞）
+ */
 public class RechargeDialog extends JDialog implements Runnable{
     private JPanel contentPane;
     private JButton buttonOK;
