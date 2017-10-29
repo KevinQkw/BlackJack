@@ -66,23 +66,28 @@ public class BlackJackGame {
         Hand dealerHand = dealer.getHand();
         int dealerValue = dealerHand.getAvailableMaxValue();
         List<Player> balancePlayers = players.stream().filter(player -> player.getBet() > 0).collect(Collectors.toList());
-        if (dealerHand.isBlackJack()) {
-            for (Player player : balancePlayers) {
+        for (Player player : balancePlayers) {
+            if (dealerHand.isBlackJack()) {
+                if (player.isHasBuyInsurance()) {
+                    player.getWinnerMoney(0.0);
+                }
                 for (Hand hand : player.getHands()) {
                     if (hand.isBlackJack()) {
                         player.getWinnerMoney(0.0);
                     }
                 }
-                if (player.isHasBuyInsurance()) {
-                    player.getWinnerMoney(0.0);
-                }
-            }
-        }
-        for (Player player : balancePlayers) {
-            for (Hand hand : player.getHands()) {
-                int temp = hand.balance(dealerValue);
-                if (temp > 0) {
-                    player.getWinnerMoney(1.0);
+            } else {
+                for (Hand hand : player.getHands()) {
+                    int temp = hand.balance(dealerValue);
+                    if (temp > 0) {
+                        player.getWinnerMoney(1.0);
+                    }
+                    if (hand.isBlackJack()) {
+                        if (temp == 0) {
+                            player.getWinnerMoney(1.0);
+                        }
+                        player.getWinnerMoney(0.0);
+                    }
                 }
             }
             player.setBet(0);

@@ -26,6 +26,7 @@ public class Player extends Person {
     public void init() {
         hands.add(new Hand(this));
         hasBuyInsurance = false;
+        System.out.println("Player " + name + " 开始新的一轮");
     }
 
     public boolean buyInsurance() {
@@ -33,6 +34,7 @@ public class Player extends Person {
             return false;
         }
         money -= bet / 2;
+        System.out.println("Player " + name + " 买了 " + bet / 2 + " 的保险");
         return true;
     }
 
@@ -42,6 +44,7 @@ public class Player extends Person {
         } else {
             money -= amount;
             bet += amount;
+            System.out.println("Player " + name + " 下了 " + amount + " 的赌注");
             return true;
         }
     }
@@ -53,6 +56,7 @@ public class Player extends Person {
     public void getWinnerMoney(Double multiple) {
         money += (int) (multiple * bet);
         money += bet;
+        System.out.println("Player " + name + " 赢得 " + (multiple + 1) + " 倍赌注");
     }
 
     public void spilt() {

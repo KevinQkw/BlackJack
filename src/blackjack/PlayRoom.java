@@ -155,7 +155,7 @@ public class PlayRoom extends JFrame {
             }
             List<Player> players = blackJackGame.getPlayers();
             for (Player player : players) {
-                while (true) {
+                /*while (true) {
                     try {
                         refresh();
                         String bet = JOptionPane.showInputDialog(player.getName() + "的下注金额？");
@@ -170,8 +170,8 @@ public class PlayRoom extends JFrame {
                     } catch (Exception e) {
                         JOptionPane.showMessageDialog(null, "请输入合法数字！");
                     }
-                }
-                //player.addBet(200);
+                }*/
+                player.addBet(200);
             }
             canBuyInsurance = blackJackGame.startTurn();
             refresh();
@@ -245,7 +245,7 @@ public class PlayRoom extends JFrame {
                 spiltButton.setEnabled(true);
             }
             refresh();
-            buyInsuranceButton.setEnabled(canBuyInsurance);
+            buyInsuranceButton.setEnabled(canBuyInsurance && !((Player) currentHand.getOwner()).isHasBuyInsurance());
             if (!validateCurrentHand()) {
                 updateCurrentHand();
             }
@@ -324,7 +324,7 @@ public class PlayRoom extends JFrame {
                     if (hand.equals(currentHand)) {
                         ImageIcon imageIcon = new ImageIcon("pukeImage/" + "back" + ".jpg");
                         g.setColor(Color.YELLOW);
-                        g.drawRect((int) x,  tableStartY +(int) y, (int) (cardList.size() * 20 * cardRatio + imageIcon.getIconWidth() * cardRatio), (int) (imageIcon.getIconHeight() * cardRatio));
+                        g.drawRect((int) x, tableStartY + (int) y, (int) (cardList.size() * 20 * cardRatio + imageIcon.getIconWidth() * cardRatio), (int) (imageIcon.getIconHeight() * cardRatio));
                     }
                 }
             }
