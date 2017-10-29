@@ -9,11 +9,18 @@ public class Dealer extends Person {
     private Hand hand;
     protected String name;
 
+    public Dealer(BlackJackGame blackJackGame) {
+        super(blackJackGame);
+        hand = new Hand(this);
+    }
+
     public int drawCards(Pile pile) {
         while (true) {
             if (hand.isBust()) {
                 return hand.getMinValue();
-            } else if (hand.getMinValue() < 17 && hand.getMaxValue() > 16) {
+            } else if(hand.isBlackJack()){
+                return 21;
+            }else if (hand.getMinValue() < 17 && hand.getMaxValue() > 16) {
                 throw new RuntimeException();
             } else if (hand.getMinValue() < 17) {
                 drawSeenCard(pile);
@@ -23,19 +30,33 @@ public class Dealer extends Person {
         }
     }
 
-    public void drawSeenCard(Pile pile) {
+    public void showHand() {
+        for (Card card : hand.getCards()) {
+            if (!card.isSeen()) {
+                card.flop();
+            }
+        }
+    }
+
+    public Card drawSeenCard(Pile pile) {
         Card card = pile.getTopCard();
         card.flop();
         hand.addCard(card);
+        return card;
     }
 
-    public void drawBlindCard(Pile pile) {
+    public Card drawBlindCard(Pile pile) {
         Card card = pile.getTopCard();
         hand.addCard(card);
+        return card;
+    }
+
+    public Hand getHand() {
+        return hand;
     }
 
     @Override
-    public void discardAll(Pile pile) {
-        pile.returnCards(hand.returnAllCards());
+    public List<Card> discardAll() {
+        return hand.returnAllCards();
     }
 }

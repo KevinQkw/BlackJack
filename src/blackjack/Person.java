@@ -2,8 +2,16 @@ package blackjack;
 
 import lombok.Data;
 
+import java.util.List;
 
+@Data
 public abstract class Person {
 
-    public abstract void discardAll(Pile pile);
+    protected BlackJackGame blackJackGame;
+
+    public Person(BlackJackGame blackJackGame) {
+        this.blackJackGame = blackJackGame;
+    }
+
+    public abstract List<Card> discardAll();
 }

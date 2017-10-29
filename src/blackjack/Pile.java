@@ -12,6 +12,12 @@ public class Pile {
 
     public Pile(List<Deck> decks) {
         this.decks = decks;
+        init();
+    }
+
+    public Pile() {
+        decks = Lists.newArrayList();
+        cards = new Stack<>();
     }
 
     public Pile(Integer deckNum) {
@@ -19,6 +25,17 @@ public class Pile {
         for (int i = 0; i < deckNum; i++) {
             decks.add(new Deck());
         }
+        init();
+    }
+
+    private void init() {
+        cards = new Stack<>();
+        for (Deck deck : decks) {
+            for (Card card : deck.getCards()) {
+                cards.push(card);
+            }
+        }
+        System.out.println("初始化牌堆完成");
     }
 
     public Card getTopCard() {

@@ -16,7 +16,8 @@ public class Card {
         this.isSeen = false;
     }
 
-    public void flop() {
+    public Card flop() {
         isSeen = !isSeen;
+        return this;
     }
 }
