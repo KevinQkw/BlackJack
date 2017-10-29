@@ -41,7 +41,7 @@ public class PlayRoom extends JFrame {
         System.out.println("Welcome to BlackJack Game!");
         PlayRoom frame = new PlayRoom();
         frame.setContentPane(frame.main);
-        frame.setBounds(200, 100, 1200, 850);
+        frame.setBounds(200, 100, 1400, 850);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
         frame.playGame();
@@ -113,9 +113,31 @@ public class PlayRoom extends JFrame {
         playersInfo = new JPanel();
         playersInfo.setBounds(0, 0, 1200, 200);
         blackJackGame = new BlackJackGame(2);
-        Player player = new Player("yerunjie", 10000, blackJackGame);
-        if (!blackJackGame.addPlayer(player)) {
-            JOptionPane.showMessageDialog(null, "最多只能五名玩家！");
+        while (true) {
+            try {
+                int peopleNumber = Integer.parseInt(JOptionPane.showInputDialog("游戏人数？"));
+                if (peopleNumber > 5) {
+                    JOptionPane.showMessageDialog(null, "最多只能五名玩家！");
+                } else {
+                    for (int i = 0; i < peopleNumber; i++) {
+                        try {
+                            String name = JOptionPane.showInputDialog("请输入姓名");
+                            if (name == null) {
+                                throw new RuntimeException();
+                            }
+                            Player player = new Player(name, 10000, blackJackGame);
+                            if (!blackJackGame.addPlayer(player)) {
+                                JOptionPane.showMessageDialog(null, "最多只能五名玩家！");
+                            }
+                        } catch (Exception e) {
+                            JOptionPane.showMessageDialog(null, "名字不能为空！");
+                        }
+                    }
+                    break;
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "请输入合法数字！");
+            }
         }
 
         display = new HandPanel(blackJackGame);
@@ -135,8 +157,8 @@ public class PlayRoom extends JFrame {
             for (Player player : players) {
                 while (true) {
                     try {
-                    refresh();
-                        String bet = JOptionPane.showInputDialog("下注金额？");
+                        refresh();
+                        String bet = JOptionPane.showInputDialog(player.getName() + "的下注金额？");
                         int betAmount = Integer.parseInt(bet);
                         if (!player.addBet(betAmount)) {
                             RechargeDialog dialog = new RechargeDialog();
@@ -193,6 +215,11 @@ public class PlayRoom extends JFrame {
         for (Player player : blackJackGame.getPlayers()) {
             JLabel jLabel = playerLabels.get(index);
             jLabel.setText("Player: " + player.getName() + " Money: " + player.getMoney());
+            if (currentHand != null && player.equals(currentHand.getOwner())) {
+                jLabel.setBorder(BorderFactory.createLineBorder(Color.yellow));
+            } else {
+                jLabel.setBorder(BorderFactory.createLineBorder(Color.white));
+            }
             index++;
         }
         display.repaint();
@@ -254,9 +281,72 @@ public class PlayRoom extends JFrame {
         spiltButton.setEnabled(false);
         buyInsuranceButton.setEnabled(false);
     }
+
+    class HandPanel extends JPanel {
+        private static final double cardRatio = 2.0 / 3.0;
+        private static final int tableStartY = 110;
+        private static final int r = 400;
+        private Hand hand;
+        private List<Player> players;
+
+        public HandPanel(BlackJackGame blackJackGame) {
+            this.hand = blackJackGame.getDealer().getHand();
+            this.players = blackJackGame.getPlayers();
+        }
+
+        public void paint(Graphics g) {
+            //调用的super.paint(g),让父类做一些事前的工作，如刷新屏幕
+            super.paint(g);
+            ImageIcon background = new ImageIcon("table1.JPG");
+            g.drawImage(background.getImage(), 0, 0, background.getIconWidth(), background.getIconHeight(), background.getImageObserver());
+
+            int total = 0;
+            for (Player player : players) {
+                for (Hand hand : player.getHands()) {
+                    total++;
+                }
+            }
+            double angle = 180.0 / total;
+            int index = 0;
+            for (Player player : players) {
+                for (Hand hand : player.getHands()) {
+                    double angles = angle * (2 * index + 1) / 2.0;
+                    double rad = Math.toRadians(angles);
+                    index++;
+                    List<Card> cardList = hand.getCards();
+                    double x = 600 - r * Math.cos(rad) - 50;
+                    double y = Math.sin(rad) * r;
+                    for (int i = 0; i < cardList.size(); i++) {
+                        Card card = cardList.get(i);
+                        printCard(card, i * 20 * cardRatio + x, tableStartY + y, g);
+                        //g.drawImage(imageIcon.getImage(), 0 + i * 20, 600, imageIcon.getIconWidth(), imageIcon.getIconHeight(), imageIcon.getImageObserver());
+                    }
+                    if (hand.equals(currentHand)) {
+                        ImageIcon imageIcon = new ImageIcon("pukeImage/" + "back" + ".jpg");
+                        g.setColor(Color.YELLOW);
+                        g.drawRect((int) x,  tableStartY +(int) y, (int) (cardList.size() * 20 * cardRatio + imageIcon.getIconWidth() * cardRatio), (int) (imageIcon.getIconHeight() * cardRatio));
+                    }
+                }
+            }
+
+            List<Card> cardList = hand.getCards();
+            for (int i = 0; i < cardList.size(); i++) {
+                Card card = cardList.get(i);
+                printCard(card, 500 + i * 20 * cardRatio, tableStartY, g);
+                //g.drawImage(imageIcon.getImage(), 500 + i * 20, 200, imageIcon.getIconWidth(), imageIcon.getIconHeight(), imageIcon.getImageObserver());
+            }
+        }
+
+        private void printCard(Card card, double x, double y, Graphics g) {
+            CardColor cardColor = card.getCardColor();
+            String fileName = card.isSeen() ? String.valueOf((cardColor.ordinal() * 13) + card.getFaceValue()) : "back";
+            ImageIcon imageIcon = new ImageIcon("pukeImage/" + fileName + ".jpg");
+            g.drawImage(imageIcon.getImage(), (int) x, (int) y, (int) (imageIcon.getIconWidth() * cardRatio), (int) (imageIcon.getIconHeight() * cardRatio), imageIcon.getImageObserver());
+        }
+    }
 }
 
-class HandPanel extends JPanel {
+/*class HandPanel extends JPanel {
     private static final double cardRatio = 2.0 / 3.0;
     private static final int tableStartY = 110;
     private static final int r = 400;
@@ -288,7 +378,7 @@ class HandPanel extends JPanel {
                 double rad = Math.toRadians(angles);
                 index++;
                 List<Card> cardList = hand.getCards();
-                double x = 600 - r * Math.cos(rad);
+                double x = 600 - r * Math.cos(rad) - 50;
                 double y = Math.sin(rad) * r;
                 for (int i = 0; i < cardList.size(); i++) {
                     Card card = cardList.get(i);
@@ -312,16 +402,5 @@ class HandPanel extends JPanel {
         ImageIcon imageIcon = new ImageIcon("pukeImage/" + fileName + ".jpg");
         g.drawImage(imageIcon.getImage(), (int) x, (int) y, (int) (imageIcon.getIconWidth() * cardRatio), (int) (imageIcon.getIconHeight() * cardRatio), imageIcon.getImageObserver());
     }
-
-    private void printCard(Card card, Pair<Integer, Integer> position, int offsetX, int offsetY, Graphics g) {
-        printCard(card, position.getKey() + offsetX, position.getValue() + offsetY, g);
-    }
-
-    private Image getCardImage(Card card) {
-        CardColor cardColor = card.getCardColor();
-        String fileName = String.valueOf(cardColor.ordinal() * card.getFaceValue() + 1);
-        ImageIcon imageIcon = new ImageIcon("pukeImage/" + fileName);
-        return imageIcon.getImage();
-    }
-}
+}*/
 
