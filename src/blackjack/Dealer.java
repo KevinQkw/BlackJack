@@ -54,9 +54,7 @@ public class Dealer extends Person {
      * @return
      */
     public Card drawSeenCard(Pile pile) {
-        Card card = pile.getTopCard();
-        card.flop();
-        hand.addCard(card);
+        Card card = hand.drawCard();
         return card;
     }
 
@@ -67,8 +65,8 @@ public class Dealer extends Person {
      * @return
      */
     public Card drawBlindCard(Pile pile) {
-        Card card = pile.getTopCard();
-        hand.addCard(card);
+        Card card = hand.drawCard();
+        card.flop();
         return card;
     }
 

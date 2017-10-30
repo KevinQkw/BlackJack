@@ -56,12 +56,18 @@ public class PlayRoom extends JFrame {
         hitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                doubleButton.setEnabled(false);
-                spiltButton.setEnabled(false);
-                currentHand.drawCard();
-                if (!validateCurrentHand()) {
-                    updateCurrentHand();
-                }
+                disableAllButton();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        currentHand.drawCard();
+                        hitButton.setEnabled(true);
+                        standButton.setEnabled(true);
+                        if (!validateCurrentHand()) {
+                            updateCurrentHand();
+                        }
+                    }
+                }).start();
             }
         });
         standButton.addActionListener(new ActionListener() {
@@ -75,9 +81,14 @@ public class PlayRoom extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (currentHand.getOwner() instanceof Player) {
                     ((Player) currentHand.getOwner()).doubleOperation();
-                    currentHand.drawCard();
-                    validateCurrentHand();
-                    updateCurrentHand();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            currentHand.drawCard();
+                            validateCurrentHand();
+                            updateCurrentHand();
+                        }
+                    }).start();
                 }
             }
         });
@@ -384,7 +395,6 @@ public class PlayRoom extends JFrame {
 
             //计算每个Hand占多少角度
             double angle = 180.0 / total;
-
             int index = 0;
             for (Player player : players) {
                 for (Hand hand : player.getHands()) {

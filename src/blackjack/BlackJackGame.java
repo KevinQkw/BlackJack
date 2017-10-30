@@ -50,8 +50,7 @@ public class BlackJackGame {
         for (Player player : players) {//初始化玩家
             for (Hand hand : player.getHands()) {//玩家抽2张明牌
                 for (int i = 0; i < 2; i++) {
-                    Card card = player.drawSeenCard(pile);
-                    hand.addCard(card);
+                    hand.drawCard();
                 }
                 hands.offer(hand);
             }

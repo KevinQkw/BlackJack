@@ -43,9 +43,12 @@ public class Hand {
     /**
      * 抽牌一张
      */
-    public void drawCard() {
+    public Card drawCard() {
+        PlayRoom.playRoom.setDealingHand(this);
         Pile pile = owner.getBlackJackGame().getPile();
-        addCard(pile.getTopCard().flop());
+        Card card = pile.getTopCard().flop();
+        addCard(card);
+        return card;
     }
 
     /**
@@ -54,7 +57,6 @@ public class Hand {
      * @param card
      */
     public void addCard(Card card) {
-        PlayRoom.playRoom.setDealingHand(this);
         cards.add(card);
     }
 
@@ -150,7 +152,7 @@ public class Hand {
      */
     public int getAvailableMaxValue() {
         List<Integer> valueList = calculateTotalValue();
-        return valueList.stream().mapToInt(i -> i).filter(integer -> integer <= 21).max().orElse(22);
+        return valueList.stream().mapToInt(i -> i).filter(integer -> integer <= 21).max().orElse(0);
     }
 
     /**
