@@ -58,6 +58,7 @@ public class Player extends Person {
     }
 
     public boolean doubleOperation() {
+        System.out.print("加倍: ");
         return addBet(bet);
     }
 

@@ -44,9 +44,9 @@ public class Hand {
      * 抽牌一张
      */
     public Card drawCard() {
-        PlayRoom.playRoom.setDealingHand(this);
         Pile pile = owner.getBlackJackGame().getPile();
         Card card = pile.getTopCard().flop();
+        PlayRoom.playRoom.setDealingHand(this);
         addCard(card);
         return card;
     }

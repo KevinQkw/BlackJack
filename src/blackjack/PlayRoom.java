@@ -119,7 +119,7 @@ public class PlayRoom extends JFrame {
 
     private void createUIComponents() {
         //牌堆由几副牌构成
-        /*while (true) {
+        while (true) {
             try {
                 String deckNum = JOptionPane.showInputDialog("几副牌作为牌堆？");
                 int deckNumber = Integer.parseInt(deckNum);
@@ -128,7 +128,7 @@ public class PlayRoom extends JFrame {
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, "请输入合法数字！");
             }
-        }*/
+        }
         playersInfo = new JPanel();
         playersInfo.setBounds(0, 0, 1200, 200);
         blackJackGame = new BlackJackGame(2);
@@ -169,6 +169,7 @@ public class PlayRoom extends JFrame {
     public void playGame() {
         boolean isContinue = true;
         while (isContinue) {
+            //是否暂停
             synchronized (isPause) {
                 while (isPause) {
                     refresh();
@@ -176,7 +177,7 @@ public class PlayRoom extends JFrame {
             }
             List<Player> players = blackJackGame.getPlayers();
             for (Player player : players) {//轮流下注
-                /*while (true) {
+                while (true) {
                     try {
                         refresh();
                         String bet = JOptionPane.showInputDialog(player.getName() + "的下注金额？");
@@ -191,14 +192,14 @@ public class PlayRoom extends JFrame {
                     } catch (Exception e) {
                         JOptionPane.showMessageDialog(null, "请输入合法数字！");
                     }
-                }*/
-                player.addBet(200);
+                }
+                //player.addBet(200);
             }
             //开始一轮游戏
             canBuyInsurance = blackJackGame.startTurn();
             refresh();
-            updateCurrentHand();
-            while (!blackJackGame.isThisTurnOver()) {
+            updateCurrentHand();//第一位玩家开始
+            while (!blackJackGame.isThisTurnOver()) {//没有结束直接刷新
                 refresh();
             }
             try {
@@ -327,6 +328,11 @@ public class PlayRoom extends JFrame {
         buyInsuranceButton.setEnabled(false);
     }
 
+    /**
+     * 主要动画的函数
+     *
+     * @param dealingHand
+     */
     public void setDealingHand(Hand dealingHand) {
         int totalTimes = 24;//(int) (totalTime * 10);
         ((HandPanel) display).setDealingHand(dealingHand, totalTimes);
@@ -350,6 +356,7 @@ public class PlayRoom extends JFrame {
         private Hand dealingHand;
         private int currentTime;
         private int totalTime;
+        private Pile pile;
 
         /**
          * 构造函数，初始化dealerHand和players
@@ -359,6 +366,7 @@ public class PlayRoom extends JFrame {
         public HandPanel(BlackJackGame blackJackGame) {
             this.dealerHand = blackJackGame.getDealer().getHand();
             this.players = blackJackGame.getPlayers();
+            this.pile = blackJackGame.getPile();
             this.dealingHand = null;
             this.totalTime = 0;
             this.currentTime = 0;
@@ -385,6 +393,8 @@ public class PlayRoom extends JFrame {
             ImageIcon pile = new ImageIcon("pukeImage/back.jpg");
             g.drawImage(pile.getImage(), pileX, tableStartY + pileY, (int) (pile.getIconWidth() * cardRatio), (int) (pile.getIconHeight() * cardRatio), pile.getImageObserver());
 
+            g.setColor(Color.white);
+            g.drawString("牌堆还剩" + this.pile.getCards().size() + "张牌", pileX, tableStartY + pileY - 10);
             //统计Hand数
             int total = 0;
             for (Player player : players) {
@@ -417,6 +427,7 @@ public class PlayRoom extends JFrame {
                         g.setColor(Color.YELLOW);
                         g.drawRect((int) x, tableStartY + (int) y, (int) ((cardList.size() - 1) * 20 * cardRatio + imageIcon.getIconWidth() * cardRatio), (int) (imageIcon.getIconHeight() * cardRatio));
                     }
+                    //绘制动画效果
                     if (dealingHand != null && hand.equals(dealingHand)) {
                         g.drawImage(pile.getImage(), (int) ((x - pileX) / totalTime * currentTime) + pileX, (int) ((y - pileY) / totalTime * currentTime) + pileY + tableStartY, (int) (pile.getIconWidth() * cardRatio), (int) (pile.getIconHeight() * cardRatio), pile.getImageObserver());
                         currentTime++;

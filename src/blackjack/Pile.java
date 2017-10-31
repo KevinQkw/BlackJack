@@ -1,6 +1,7 @@
 package blackjack;
 
 import com.google.common.collect.Lists;
+import lombok.Data;
 
 import java.util.List;
 import java.util.Random;
@@ -9,6 +10,7 @@ import java.util.Stack;
 /**
  * 牌堆
  */
+@Data
 public class Pile {
     private Stack<Card> cards;
     private List<Deck> decks;
